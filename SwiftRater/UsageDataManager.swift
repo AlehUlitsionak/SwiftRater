@@ -29,7 +29,7 @@ class UsageDataManager {
 
     static var shared = UsageDataManager()
 
-    let userDefaults = UserDefaults.standard
+    let userDefaults = UserDefaults(suiteName: "group.jordan.steven.customfont")
 
     private init() {
         let defaults = [
