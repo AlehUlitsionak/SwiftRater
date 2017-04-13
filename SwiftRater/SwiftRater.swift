@@ -264,10 +264,22 @@ public class SwiftRater: NSObject {
     }
 
     private func showRatingAlert() {
-        if #available(iOS 10.3, *) {
-            SKStoreReviewController.requestReview()
-            UsageDataManager.shared.isRateDone = true
-        } else {
+        
+        #if Container
+            if #available(iOS 10.3, *) {
+                SKStoreReviewController.requestReview()
+                UsageDataManager.shared.isRateDone = true
+            } else {
+                let alertView = { () -> UIAlertView in
+                    if SwiftRater.showLaterButton {
+                        return UIAlertView(title: titleText, message: messageText, delegate: self, cancelButtonTitle: cancelText, otherButtonTitles: rateText, laterText)
+                    } else {
+                        return UIAlertView(title: titleText, message: messageText, delegate: self, cancelButtonTitle: cancelText, otherButtonTitles: rateText)
+                    }
+                }()
+                alertView.show()
+            }
+        #else
             let alertView = { () -> UIAlertView in
                 if SwiftRater.showLaterButton {
                     return UIAlertView(title: titleText, message: messageText, delegate: self, cancelButtonTitle: cancelText, otherButtonTitles: rateText, laterText)
@@ -276,7 +288,8 @@ public class SwiftRater: NSObject {
                 }
             }()
             alertView.show()
-        }
+        #endif
+   
     }
 }
 
