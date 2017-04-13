@@ -133,9 +133,9 @@ public class SwiftRater: NSObject {
         UsageDataManager.shared.incrementSignificantUseCount()
     }
 
-    public static func check() {
+    public static func check(controller: UIViewController) {
         if UsageDataManager.shared.ratingConditionsHaveBeenMet {
-            SwiftRater.shared.showRatingAlert()
+            SwiftRater.shared.showRatingAlert(controller: controller)
         }
     }
 
@@ -263,7 +263,7 @@ public class SwiftRater: NSObject {
         UsageDataManager.shared.incrementSignificantUseCount()
     }
 
-    private func showRatingAlert() {
+    private func showRatingAlert(controller: UIViewController) {
         
         #if Container
             if #available(iOS 10.3, *) {
@@ -280,14 +280,30 @@ public class SwiftRater: NSObject {
                 alertView.show()
             }
         #else
-            let alertView = { () -> UIAlertView in
-                if SwiftRater.showLaterButton {
-                    return UIAlertView(title: titleText, message: messageText, delegate: self, cancelButtonTitle: cancelText, otherButtonTitles: rateText, laterText)
-                } else {
-                    return UIAlertView(title: titleText, message: messageText, delegate: self, cancelButtonTitle: cancelText, otherButtonTitles: rateText)
-                }
-            }()
-            alertView.show()
+
+            let alertController = UIAlertController(title: titleText, message: messageText, preferredStyle: UIAlertControllerStyle.alert)
+            
+            let rateAction = UIAlertAction(title: rateText, style: .default) { _ in
+                self.rateApp()
+                UsageDataManager.shared.isRateDone = true
+            }
+            
+            let laterAction = UIAlertAction(title: laterText, style: .default)  { _ in
+                UsageDataManager.shared.saveReminderRequestDate()
+            }
+            
+            let cancelAction = UIAlertAction(title: cancelText, style: .cancel) { _ in
+                UsageDataManager.shared.isRateDone = true
+            }
+            
+            var actions = [rateAction, laterAction, cancelAction]
+            if SwiftRater.showLaterButton {
+                actions.remove(at: 1)
+            }
+            
+            actions.forEach{alertController.addAction($0)}
+            controller.present(alertController, animated: true, completion: nil)
+            
         #endif
    
     }
@@ -316,7 +332,7 @@ extension SwiftRater: UIAlertViewDelegate {
         }
     }
 
-    private func rateApp() {
+    func rateApp() {
         #if arch(i386) || arch(x86_64)
             print("APPIRATER NOTE: iTunes App Store is not supported on the iOS simulator. Unable to open App Store page.");
         #else
