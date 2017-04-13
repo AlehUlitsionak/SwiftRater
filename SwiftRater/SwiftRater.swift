@@ -265,47 +265,44 @@ public class SwiftRater: NSObject {
 
     private func showRatingAlert(controller: UIViewController) {
         
-        #if Container
             if #available(iOS 10.3, *) {
                 SKStoreReviewController.requestReview()
                 UsageDataManager.shared.isRateDone = true
             } else {
-                let alertView = { () -> UIAlertView in
-                    if SwiftRater.showLaterButton {
-                        return UIAlertView(title: titleText, message: messageText, delegate: self, cancelButtonTitle: cancelText, otherButtonTitles: rateText, laterText)
-                    } else {
-                        return UIAlertView(title: titleText, message: messageText, delegate: self, cancelButtonTitle: cancelText, otherButtonTitles: rateText)
-                    }
-                }()
-                alertView.show()
+                
+                let alertController = UIAlertController(title: titleText, message: messageText, preferredStyle: UIAlertControllerStyle.alert)
+                
+                let rateAction = UIAlertAction(title: rateText, style: .default) { _ in
+                    self.rateApp()
+                    UsageDataManager.shared.isRateDone = true
+                }
+                
+                let laterAction = UIAlertAction(title: laterText, style: .default)  { _ in
+                    UsageDataManager.shared.saveReminderRequestDate()
+                }
+                
+                let cancelAction = UIAlertAction(title: cancelText, style: .cancel) { _ in
+                    UsageDataManager.shared.isRateDone = true
+                }
+                
+                var actions = [rateAction, laterAction, cancelAction]
+                if SwiftRater.showLaterButton {
+                    actions.remove(at: 1)
+                }
+                
+                actions.forEach{alertController.addAction($0)}
+                controller.present(alertController, animated: true, completion: nil)
+                
+//                let alertView = { () -> UIAlertView in
+//                    if SwiftRater.showLaterButton {
+//                        return UIAlertView(title: titleText, message: messageText, delegate: self, cancelButtonTitle: cancelText, otherButtonTitles: rateText, laterText)
+//                    } else {
+//                        return UIAlertView(title: titleText, message: messageText, delegate: self, cancelButtonTitle: cancelText, otherButtonTitles: rateText)
+//                    }
+//                }()
+//                alertView.show()
             }
-        #else
 
-            let alertController = UIAlertController(title: titleText, message: messageText, preferredStyle: UIAlertControllerStyle.alert)
-            
-            let rateAction = UIAlertAction(title: rateText, style: .default) { _ in
-                self.rateApp()
-                UsageDataManager.shared.isRateDone = true
-            }
-            
-            let laterAction = UIAlertAction(title: laterText, style: .default)  { _ in
-                UsageDataManager.shared.saveReminderRequestDate()
-            }
-            
-            let cancelAction = UIAlertAction(title: cancelText, style: .cancel) { _ in
-                UsageDataManager.shared.isRateDone = true
-            }
-            
-            var actions = [rateAction, laterAction, cancelAction]
-            if SwiftRater.showLaterButton {
-                actions.remove(at: 1)
-            }
-            
-            actions.forEach{alertController.addAction($0)}
-            controller.present(alertController, animated: true, completion: nil)
-            
-        #endif
-   
     }
 }
 
